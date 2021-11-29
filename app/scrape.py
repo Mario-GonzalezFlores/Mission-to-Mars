@@ -18,6 +18,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres": mars_hemispheres,
         "last_modified": dt.datetime.now()
     }
     # Stop webdriver and return data
@@ -99,6 +100,49 @@ def mars_facts():
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
 
+
+### Challenge Code
+def mars_hemispheres(browser):
+    # 1. Use browser to visit the URL 
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    # 2. Create a list to hold the images and titles.
+    hemisphere_site = []
+    hemisphere_title= []
+    hemisphere_image_urls = []
+
+    # 3. Write code to retrieve the image urls and titles for each hemisphere.
+    html_hem = browser.html
+    hems_soup = soup(html_hem, 'html.parser')
+
+    # Finding url for the hemispheres images
+    for hem_links in hems_soup.find_all('a', class_='itemLink', href=True):
+        hem_link=hem_links['href']
+        hem_url = f'https://marshemispheres.com/{hem_link}'
+        if hem_url not in hemisphere_site and hem_link is not "#":
+            hemisphere_site.append(hem_url)
+
+    # Visiting sites and retrieving image link and title
+    for link in hemisphere_site:
+        browser.visit(link)
+        html_hem_img = browser.html
+        hem_img_soup = soup(html_hem_img, 'html.parser')
+        img_url_rel =  hem_img_soup.find('a', text='Sample').get('href')
+        hem_url= f'https://marshemispheres.com/{img_url_rel}'
+        hemisphere_image_urls.append(hem_url)
+        img_title =  hem_img_soup.find('h2',class_='title').string
+        hemisphere_title.append(img_title)
+
+    # Creating dictionary to hold images links and titles
+    hemisph_dict = {}
+    for url in hemisphere_image_urls:
+        for title in hemisphere_title:
+            hemisph_dict[url] = title
+            hemisphere_title.remove(title)
+            break
+            
+    return(hemisph_dict)
 
 if __name__ == "__main__":
 
